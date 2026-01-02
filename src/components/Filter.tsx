@@ -1,15 +1,15 @@
 import React, { useMemo } from "react";
-import { motion, useTransform, MotionValue } from "motion/react";
+// اگر پکیج framer-motion دارید، خط زیر را تغییر دهید
+import { motion, useTransform, MotionValue } from "motion/react"; 
 
-// ایمپورت توابع ریاضی (مطمئن شوید پوشه lib کامل است)
 import { calculateDisplacementMap, calculateDisplacementMap2 } from "../lib/displacementMap";
 import { calculateMagnifyingDisplacementMap } from "../lib/magnifyingDisplacement";
 import { calculateRefractionSpecular } from "../lib/specular";
-import { CONVEX, SURFACE_TYPES } from "../lib/surfaceEquations"; // این فایل را در مرحله بعد آپدیت می‌کنیم
+import { CONVEX, SURFACE_TYPES } from "../lib/surfaceEquations";
 
-// تابع کمکی برای تبدیل داده به عکس
+// تابع کمکی تبدیل داده به عکس (بدون تغییر)
 function imageDataToDataUrl(imageData: ImageData): string {
-  if (typeof document === "undefined") return ""; // چک کردن محیط سرور
+  if (typeof document === "undefined") return "";
   const canvas = document.createElement("canvas");
   canvas.width = imageData.width;
   canvas.height = imageData.height;
@@ -29,15 +29,12 @@ interface FilterProps {
   bezelWidth: number;
   glassThickness: number;
   refractiveIndex: number;
-  // نوع لبه شیشه (محدب، مقعر، لب‌دار)
   bezelType?: "convex_squircle" | "convex" | "concave" | "lip";
-  
-  // انیمیشن‌ها
   blur?: number | MotionValue<number>;
   scaleRatio?: number | MotionValue<number>;
   specularOpacity?: number | MotionValue<number>;
   specularSaturation?: number | MotionValue<number>;
-  magnifyingScale?: number | MotionValue<number>; // اختیاری شد
+  magnifyingScale?: number | MotionValue<number>;
 }
 
 export const Filter: React.FC<FilterProps> = ({
@@ -53,31 +50,37 @@ export const Filter: React.FC<FilterProps> = ({
   scaleRatio = 1,
   specularOpacity = 0.5,
   specularSaturation = 9,
-  magnifyingScale, // اگر پاس داده نشود، undefined است
+  magnifyingScale,
 }) => {
   
   const { dispUrl, specUrl, magUrl, maxDisplacement } = useMemo(() => {
-    // ۱. انتخاب فرمول ریاضی بر اساس نوع لبه
+    // گارد امنیتی: اگر window نبود (مثلا موقع بیلد یا تست)، مقدار خالی برگردان
+    if (typeof window === 'undefined') {
+        return { dispUrl: "", specUrl: "", magUrl: "", maxDisplacement: 0 };
+    }
+
+    const dpr = window.devicePixelRatio || 1;
+
     const surfaceDef = SURFACE_TYPES[bezelType] || CONVEX;
     const surfaceFn = surfaceDef.fn;
 
-    // ۲. محاسبه شکست نور بدنه
+    // ۱. محاسبات ریاضی
     const precomputed = calculateDisplacementMap(
       glassThickness, bezelWidth, surfaceFn, refractiveIndex
     );
     const maxDisp = Math.max(...precomputed.map((x) => Math.abs(x)));
     
+    // ۲. تولید مپ جابجایی
     const dispData = calculateDisplacementMap2(
-      width, height, width, height, radius, bezelWidth, 100, precomputed, window.devicePixelRatio || 1
+      width, height, width, height, radius, bezelWidth, 100, precomputed, dpr
     );
 
-    // ۳. محاسبه برق شیشه
+    // ۳. تولید مپ براقیت (Specular)
     const specData = calculateRefractionSpecular(
-      width, height, radius, bezelWidth, undefined, window.devicePixelRatio || 1
+      width, height, radius, bezelWidth, undefined, dpr
     );
 
-    // ۴. محاسبه بزرگ‌نمایی (فقط اگر نیاز بود)
-    // برای دکمه‌های ساده مثل Switch، این محاسبه انجام نمی‌شود تا سبک باشد
+    // ۴. تولید مپ ذره‌بین (فقط در صورت نیاز)
     let magDataUrl = "";
     if (magnifyingScale) {
         const magData = calculateMagnifyingDisplacementMap(width, height);
@@ -92,7 +95,7 @@ export const Filter: React.FC<FilterProps> = ({
     };
   }, [width, height, radius, bezelWidth, glassThickness, refractiveIndex, bezelType, Boolean(magnifyingScale)]);
 
-  // تبدیل متغیرهای Motion
+  // تبدیل MotionValue ها
   const displacementScale = useTransform(() => {
     const ratio = typeof scaleRatio === "number" ? scaleRatio : scaleRatio.get();
     return maxDisplacement * ratio;
@@ -102,15 +105,24 @@ export const Filter: React.FC<FilterProps> = ({
     (typeof specularSaturation === "number" ? specularSaturation : specularSaturation.get()).toString()
   );
 
+  // اگر هنوز دیتایی نداریم (مثلاً اولین رندر سمت کلاینت)، چیزی برنگردان
+  if (!dispUrl) return null;
+
   return (
     <svg style={{ display: "none" }}>
       <defs>
         <filter id={id} filterUnits="userSpaceOnUse" x="0" y="0" width={width} height={height}>
           
-          {/* لایه ۱: بزرگ‌نمایی (فقط اگر magnifyingScale وجود داشته باشد) */}
+          {/* لایه بزرگ‌نمایی */}
           {magnifyingScale && magUrl && (
             <>
-              <feImage href={magUrl} result="magMap" x="0" y="0" width={width} height={height} />
+              <feImage 
+                href={magUrl} 
+                result="magMap" 
+                x="0" y="0" 
+                width={width} height={height} 
+                preserveAspectRatio="none" 
+              />
               <motion.feDisplacementMap
                 in="SourceGraphic"
                 in2="magMap"
@@ -122,16 +134,21 @@ export const Filter: React.FC<FilterProps> = ({
             </>
           )}
 
-          {/* لایه ۲: بلور */}
+          {/* لایه بلور */}
           <motion.feGaussianBlur
-            // اگر لایه بزرگ‌نمایی داشتیم، روی آن بلور بزن، وگرنه روی تصویر اصلی
             in={magnifyingScale ? "magnified" : "SourceGraphic"}
             stdDeviation={blur}
             result="blurred"
           />
 
-          {/* لایه ۳: شکست نور بدنه (شکل هندسی دکمه) */}
-          <feImage href={dispUrl} result="dispMap" x="0" y="0" width={width} height={height} />
+          {/* لایه اصلی شیشه (شکست نور) */}
+          <feImage 
+            href={dispUrl} 
+            result="dispMap" 
+            x="0" y="0" 
+            width={width} height={height} 
+            preserveAspectRatio="none" // این خط جلوی دفرمه شدن لبه‌ها را می‌گیرد
+          />
           <motion.feDisplacementMap
             in="blurred"
             in2="dispMap"
@@ -141,7 +158,7 @@ export const Filter: React.FC<FilterProps> = ({
             result="displaced"
           />
 
-          {/* لایه ۴: تنظیم رنگ و اشباع */}
+          {/* لایه رنگ و نور */}
           <motion.feColorMatrix
             in="displaced"
             type="saturate"
@@ -149,8 +166,14 @@ export const Filter: React.FC<FilterProps> = ({
             result="saturated"
           />
 
-          {/* لایه ۵: بازتاب نور (برق شیشه) */}
-          <feImage href={specUrl} result="specLayer" x="0" y="0" width={width} height={height} />
+          {/* لایه براقیت */}
+          <feImage 
+            href={specUrl} 
+            result="specLayer" 
+            x="0" y="0" 
+            width={width} height={height} 
+            preserveAspectRatio="none"
+          />
           
           <feComposite in="saturated" in2="specLayer" operator="in" result="specComp" />
           
@@ -158,7 +181,6 @@ export const Filter: React.FC<FilterProps> = ({
             <motion.feFuncA type="linear" slope={specularOpacity} />
           </feComponentTransfer>
 
-          {/* ترکیب نهایی */}
           <feBlend in="specComp" in2="displaced" mode="normal" result="blended1" />
           <feBlend in="specFaded" in2="blended1" mode="normal" />
 

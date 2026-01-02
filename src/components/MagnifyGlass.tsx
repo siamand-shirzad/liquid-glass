@@ -2,7 +2,7 @@ import { motion, useMotionValue, useSpring, useTransform } from 'motion/react';
 import React, { useEffect, useRef } from 'react';
 import { Filter } from './Filter';
 
-export const MagnifyingGlass: React.FC = () => {
+export const MagnifyingGlass: React.FC = ({}) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   // متغیرهای حرکتی برای وضعیت درگ و سرعت
@@ -18,11 +18,16 @@ export const MagnifyingGlass: React.FC = () => {
 
   // ۱. افکت بزرگ‌نمایی (Scale) هنگام درگ کردن
   // وقتی درگ می‌کنید، عدد بزرگ‌نمایی از ۲۴ به ۴۸ تغییر می‌کند (انیمیشن فنری)
-  const magnifyingScale = useSpring(
-    useTransform(isDragging, (d): number => (d ? 48 : 24)),
-    { stiffness: 250, damping: 14 }
-  );
+const magnifyingScale = useSpring(24, { stiffness: 250, damping: 14 });
 
+// ۲. آپدیت کردن اسپرینگ در useEffect
+useEffect(() => {
+   // سابسکرایب کردن به تغییرات isDragging
+   const unsubscribe = isDragging.on("change", (latest) => {
+     magnifyingScale.set(latest ? 48 : 24);
+   });
+   return unsubscribe;
+}, []);
   // ۲. تغییر اندازه خود شیشه (Object Scale)
   // وقتی درگ می‌کنید، شیشه کمی بزرگ‌تر می‌شود (۱) و وقتی رهاست (۰.۸)
   const objectScale = useSpring(
@@ -63,8 +68,7 @@ export const MagnifyingGlass: React.FC = () => {
 
   return (
     <>
-      <div ref={containerRef} className="   ... overflow-hidden">
-        {/* پس‌زمینه: متن و عکس که قرار است "شکسته" دیده شوند */}
+      <div ref={containerRef} className="   ">
 
         {/* المان قابل درگ (خود شیشه) */}
         <motion.div

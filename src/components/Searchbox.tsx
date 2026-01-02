@@ -7,11 +7,11 @@ export const Searchbox: React.FC = () => {
   const width = 420;
   const radius = height / 2;
 
-  const specularOpacity = useMotionValue(0.4);
+  const specularOpacity = useMotionValue(0.2);
   const specularSaturation = useMotionValue(4);
   const refractionLevel = useMotionValue(0.7);
   // بلور را کمی بیشتر کنید تا در حالت عادی محو باشد
-  const blur = useMotionValue(0); 
+  const blur = useMotionValue(1); 
   const focused = useMotionValue(0);
   const pointerDown = useMotionValue(0);
 
@@ -47,7 +47,7 @@ export const Searchbox: React.FC = () => {
   useEffect(() => {
     const unsubscribe = focused.on("change", (v) => {
        // اگر فوکوس شد، بلور 0 شود، اگر نبود 2
-       blur.set(v ? 0 : 2);
+       blur.set(v ? 2 : 1);
     });
     return () => unsubscribe();
   }, [blur, focused]);
@@ -74,7 +74,7 @@ export const Searchbox: React.FC = () => {
           height={56}
           radius={28} // اصلاح شد به 28 (نصف 56)
           bezelWidth={27}
-          glassThickness={70}
+          glassThickness={60}
           refractiveIndex={2} // کمی طبیعی‌تر (1.5) بهتر از 2 است برای این سایز
           bezelType="convex_squircle"
           

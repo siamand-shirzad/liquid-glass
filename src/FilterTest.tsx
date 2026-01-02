@@ -51,7 +51,7 @@ export const LiquidNavbar: React.FC = () => {
         
         className="relative cursor-pointer z-50 overflow-hidden"
         style={{
-          width: width, // عرض ثابت
+          width: 420, // عرض ثابت
           borderRadius: radius,
           scale, 
           boxShadow,
@@ -61,7 +61,7 @@ export const LiquidNavbar: React.FC = () => {
         {/* چون عرض ثابته، فیلتر خیلی سبک‌تر اجرا میشه */}
         <Filter
             id="navbar-glass"
-            width={width}
+            width={420}
             height={isOpen ? expandedHeight : collapsedHeight}
             radius={radius}
             
@@ -72,7 +72,7 @@ export const LiquidNavbar: React.FC = () => {
             bezelType="convex_squircle"
             
             blur={blur}
-            specularOpacity={0.5}
+            specularOpacity={0.4}
             specularSaturation={12}
         />
 
@@ -82,7 +82,6 @@ export const LiquidNavbar: React.FC = () => {
           style={{
             borderRadius: radius,
             backdropFilter: `url(#navbar-glass)`,
-            // رنگ شیشه: وقتی بسته است شبیه سرچ‌باکس، وقتی بازه شفاف‌تر
           }}
         />
 
