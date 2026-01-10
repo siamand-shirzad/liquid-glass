@@ -2,8 +2,8 @@ import { motion, useMotionValue, useSpring, useTransform } from 'motion/react';
 import React, { useEffect, useRef } from 'react';
 import { Filter } from './Filter';
 
-export const MagnifyingGlass: React.FC = ({}) => {
-  const containerRef = useRef<HTMLDivElement | null>(null);
+const MagnifyingGlass: React.FC = ({containerRef}) => {
+  // const containerRef = useRef<HTMLDivElement | null>(null);
 
   // متغیرهای حرکتی برای وضعیت درگ و سرعت
   const isDragging = useMotionValue(false);
