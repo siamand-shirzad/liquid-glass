@@ -1,5 +1,4 @@
 import React, { useMemo } from "react";
-// اگر پکیج framer-motion دارید، خط زیر را تغییر دهید
 import { motion, useTransform, MotionValue } from "motion/react"; 
 
 import { calculateDisplacementMap, calculateDisplacementMap2 } from "../lib/displacementMap";
@@ -8,28 +7,6 @@ import { calculateRefractionSpecular } from "../lib/specular";
 import { CONVEX, SURFACE_TYPES } from "../lib/surfaceEquations";
 import { imageDataToUrl } from "../lib/imageDataToUrl";
 
-// تابع کمکی تبدیل داده به عکس (بدون تغییر)
-// function imageDataToUrl(imageData: ImageData): string {
-//   if (typeof document === "undefined") return "";
-//   const canvas = document.createElement("canvas");
-//   canvas.width = imageData.width;
-//   canvas.height = imageData.height;
-//   const ctx = canvas.getContext("2d");
-//   if (ctx) {
-//     ctx.putImageData(imageData, 0, 0);
-//     return canvas.toDataURL("image/png");
-//   }
-//   return "";
-// }
-export function getRayColor(intensity: number) {
-  const hue = 180 + Math.abs(intensity) * 85;
-  return `hsl(${hue},88%,54%)`;
-}
-
-export function getRayColorDimmed(intensity: number) {
-  const hue = 180 + Math.abs(intensity) * 85;
-  return `hsl(${hue},76%,45%)`;
-}
 
 interface FilterProps {
   id: string;
