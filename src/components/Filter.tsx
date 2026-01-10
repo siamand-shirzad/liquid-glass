@@ -6,19 +6,29 @@ import { calculateDisplacementMap, calculateDisplacementMap2 } from "../lib/disp
 import { calculateMagnifyingDisplacementMap } from "../lib/magnifyingDisplacement";
 import { calculateRefractionSpecular } from "../lib/specular";
 import { CONVEX, SURFACE_TYPES } from "../lib/surfaceEquations";
+import { imageDataToUrl } from "../lib/imageDataToUrl";
 
 // تابع کمکی تبدیل داده به عکس (بدون تغییر)
-function imageDataToDataUrl(imageData: ImageData): string {
-  if (typeof document === "undefined") return "";
-  const canvas = document.createElement("canvas");
-  canvas.width = imageData.width;
-  canvas.height = imageData.height;
-  const ctx = canvas.getContext("2d");
-  if (ctx) {
-    ctx.putImageData(imageData, 0, 0);
-    return canvas.toDataURL("image/png");
-  }
-  return "";
+// function imageDataToUrl(imageData: ImageData): string {
+//   if (typeof document === "undefined") return "";
+//   const canvas = document.createElement("canvas");
+//   canvas.width = imageData.width;
+//   canvas.height = imageData.height;
+//   const ctx = canvas.getContext("2d");
+//   if (ctx) {
+//     ctx.putImageData(imageData, 0, 0);
+//     return canvas.toDataURL("image/png");
+//   }
+//   return "";
+// }
+export function getRayColor(intensity: number) {
+  const hue = 180 + Math.abs(intensity) * 85;
+  return `hsl(${hue},88%,54%)`;
+}
+
+export function getRayColorDimmed(intensity: number) {
+  const hue = 180 + Math.abs(intensity) * 85;
+  return `hsl(${hue},76%,45%)`;
 }
 
 interface FilterProps {
@@ -26,8 +36,8 @@ interface FilterProps {
   width: number;
   height: number;
   radius: number;
-  bezelWidth: number;
-  glassThickness: number;
+  bezelWidth?: number;
+  glassThickness?: number;
   refractiveIndex: number;
   bezelType?: "convex_squircle" | "convex" | "concave" | "lip";
   blur?: number | MotionValue<number>;
@@ -39,11 +49,11 @@ interface FilterProps {
 
 export const Filter: React.FC<FilterProps> = ({
   id,
-  width,
-  height,
+  width=100,
+  height=100,
   radius,
-  bezelWidth,
-  glassThickness,
+  bezelWidth=50,
+  glassThickness=200,
   refractiveIndex,
   bezelType = "convex_squircle",
   blur = 0,
@@ -84,12 +94,12 @@ export const Filter: React.FC<FilterProps> = ({
     let magDataUrl = "";
     if (magnifyingScale) {
         const magData = calculateMagnifyingDisplacementMap(width, height);
-        magDataUrl = imageDataToDataUrl(magData);
+        magDataUrl = imageDataToUrl(magData);
     }
 
     return {
-      dispUrl: imageDataToDataUrl(dispData),
-      specUrl: imageDataToDataUrl(specData),
+      dispUrl: imageDataToUrl(dispData),
+      specUrl: imageDataToUrl(specData),
       magUrl: magDataUrl,
       maxDisplacement: maxDisp,
     };
