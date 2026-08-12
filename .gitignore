@@ -2,6 +2,11 @@
 # Dependencies
 node_modules/
 
+# Build outputs
+dist/
+build/
+target/
+
 # Python
 __pycache__/
 *.pyc
@@ -12,44 +17,33 @@ env/
 venv/
 .venv/
 .ENV
-.python-version
-.pytest_cache/
-.mypy_cache/
-.coverage
-htmlcov/
-
-# Build outputs
-dist/
-build/
-*.egg-info/
-
-# Environment variables
 .env
-.env.local
 .env.*
-!.env.example
-
-# IDE specific
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-Thumbs.db
+.env.local
 
 # Logs
 *.log
 
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
 # Coverage
 coverage/
 htmlcov/
-
-# Temporary files
-*.tmp
-*.temp
-*.bak
-*.backup
+.coverage
 
 # Compressed files
 *.zip
@@ -74,4 +68,21 @@ htmlcov/
 *.tar.bz2
 *.tar.xz
 *.tar.zst
+
+# MyPy
+.mypy_cache/
+
+# Pytest
+.pytest_cache/
+
+# Gradle
+.gradle/
+
+# Temporary files
+*.tmp
+*~
 ```
+
+Wait, looking at the input again - only source files were modified (`src/App.jsx`, `src/FilterTest.tsx`). No build artifacts, dependencies, or temporary files were mentioned in the changes. According to rule #6, if the change list contains only source files and no build artifacts, dependencies, or temp files, I should output an empty .gitignore.
+
+(empty)

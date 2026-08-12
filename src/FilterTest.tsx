@@ -4,96 +4,92 @@ import { Filter } from './components/Filter';
 
 export const LiquidNavbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-
-  // --- تنظیمات ابعاد (دقیقاً سایز Searchbox) ---
-  const width = 420; // عرض ثابت (مثل سرچ‌باکس)
+  
+  // --- ابعاد بهینه برای سرعت ---
   const collapsedHeight = 70;
-  const expandedHeight = 20 * 16; // ارتفاع وقتی باز میشه
+  const expandedHeight = 20 * 16;
   const radius = collapsedHeight / 2;
+  
+  // --- فیزیک انیمیشن با استیفنس بالاتر برای حس Apple ---
+  const openMotion = useSpring(isOpen ? 1 : 0, { stiffness: 400, damping: 25 });
 
-  // --- فیزیک انیمیشن ---
-  const openMotion = useSpring(isOpen ? 1 : 0, { stiffness: 200, damping: 15 });
-
-  // 1. سایه (Shadow) - وقتی باز میشه سایه عمیق‌تر میشه
-  const shadowOpacity = useTransform(openMotion, [0, 1], [0.12, 0.25]);
-  const shadowY = useTransform(openMotion,  [0, 1], [4, 16]);
-  const shadowBlur = useTransform(openMotion, [0, 1], [10, 30]);
-
+  // 1. سایه (Shadow) - نرم‌تر و ظریف‌تر
+  const shadowOpacity = useTransform(openMotion, [0, 1], [0.08, 0.2]);
+  const shadowY = useTransform(openMotion,  [0, 1], [2, 12]);
+  const shadowBlur = useTransform(openMotion, [0, 1], [8, 24]);
+  
   const boxShadow = useTransform(
     [shadowY, shadowBlur, shadowOpacity],
     ([y, b, o]) => `0 ${y}px ${b}px rgba(0, 0, 0, ${o})`
   );
 
-  // 2. تپش موقع کلیک (برای حس دکمه بودن)
-  const scale = useSpring(1, { stiffness: 200, damping: 50 });
+  // 2. تپش موقع کلیک (برای حس دکمه بودن) - سریع‌تر
+  const scale = useSpring(1, { stiffness: 400, damping: 30 });
 
-  // 3. فیلتر (Blur)
-  const blur = useMotionValue(1);
+  // 3. فیلتر (Blur) - کاهش بلور برای سرعت بیشتر
+  const blur = useMotionValue(1.5);
   useEffect(() => {
-    // وقتی بازه شفاف باشه، وقتی بسته است کمی بلور داشته باشه (مثل Searchbox)
-    blur.set(isOpen ? 3 : 2);
+    blur.set(isOpen ? 2 : 1.5);
   }, [isOpen]);
 
   return (
-    <div className="fixed top-20 right-0 left-0  z-50 flex justify-center items-center">
+    <div className="fixed top-20 right-0 left-0 z-50 flex justify-center items-center pointer-events-none">
       <motion.nav
-        // انیمیشن فقط روی ارتفاع (Height) اعمال میشه
-        // initial={false}
         animate={{
           height: isOpen ? expandedHeight : collapsedHeight
         }}
-        transition={{ type: 'spring', stiffness: 200, damping: 30 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 25 }}
         onClick={() => setIsOpen(!isOpen)}
-        onMouseDown={() => scale.set(1)} // فشرده شدن موقع کلیک
-        onMouseUp={() => scale.set(1.1)}
-        onMouseLeave={() => scale.set(1.1)}
-        className="relative  cursor-pointer "
+        onMouseDown={() => scale.set(0.98)}
+        onMouseUp={() => scale.set(1)}
+        onMouseLeave={() => scale.set(1)}
+        className="relative cursor-pointer pointer-events-auto"
         style={{
-          width: 620, // عرض ثابت
+          width: 620,
           borderRadius: radius,
           scale,
           boxShadow
         }}>
         {/* --- لایه ۱: فیلتر هوشمند --- */}
-        {/* چون عرض ثابته، فیلتر خیلی سبک‌تر اجرا میشه */}
         <Filter
           id="navbar-glass"
           width={620}
           height={isOpen ? expandedHeight : collapsedHeight}
           radius={radius}
-          // تنظیمات شیشه (کپی شده از Searchbox)
-          bezelWidth={27}
-          glassThickness={80}
-          refractiveIndex={2}
-          bezelType="convex_squircle"
+          bezelWidth={20}
+          glassThickness={60}
+          refractiveIndex={1.5}
+          bezelType="squircle"
           blur={blur}
-          specularOpacity={0.2}
-          specularSaturation={3}
+          specularOpacity={0.15}
+          specularSaturation={2}
         />
 
         {/* --- لایه ۲: بدنه شیشه‌ای --- */}
         <motion.div
-          className="absolute inset-0 ring-4 ring-black/5 "
+          className="absolute inset-0 ring-1 ring-white/10"
           style={{
             borderRadius: radius,
             backdropFilter: `url(#navbar-glass)`,
-            boxShadow : boxShadow
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            boxShadow
           }}
         />
 
         {/* --- لایه ۳: محتوا --- */}
         <div className="relative z-10 w-full h-full flex flex-col">
-          {/* هدر: دقیقاً شبیه Searchbox */}
+          {/* هدر */}
           <div className="h-[70px] flex items-center justify-between p-6 group w-full">
-            {/* متن سمت چپ (مثل Placeholder سرچ‌باکس) */}
             <img
               src="/sia.png"
               alt="S Logo"
-              className="h-12 w-12   transition-transform duration-500 group-hover:scale-105"
+              className="h-12 w-12 transition-transform duration-300 group-hover:scale-105"
             />
 
-            {/* آیکون سمت راست (بدون بک‌گراند) */}
-            <motion.div animate={{ rotate: isOpen ? 90 : 0 }} className="text-gray-500 opacity-80">
+            <motion.div 
+              animate={{ rotate: isOpen ? 90 : 0 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+              className="text-gray-400 opacity-80">
               {isOpen ? (
                 <svg
                   width="24"
@@ -125,19 +121,18 @@ export const LiquidNavbar: React.FC = () => {
             </motion.div>
           </div>
 
-          {/* لیست لینک‌ها (وقتی باز میشه ظاهر میشن) */}
+          {/* لیست لینک‌ها */}
           <AnimatePresence>
             {isOpen && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{
                   opacity: 1,
-                  transition: { delay: 0.1, staggerChildren: 0.05 }
+                  transition: { delay: 0.05, staggerChildren: 0.03 }
                 }}
                 exit={{ opacity: 0, transition: { duration: 0.1 } }}
-                className="flex flex-col gap-2 px-4 pb-6 w-full">
-                {/* خط جداکننده ظریف */}
-                <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} className="h-px w-full bg-black/10 mb-2" />
+                className="flex flex-col gap-1 px-4 pb-6 w-full">
+                <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} className="h-px w-full bg-white/10 mb-2" />
 
                 {['Dashboard', 'Projects', 'Team', 'Settings'].map(item => (
                   <motion.a
@@ -145,10 +140,10 @@ export const LiquidNavbar: React.FC = () => {
                     href="#"
                     initial={{ x: -10, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
-                    className="px-4 py-3 rounded-xl hover:bg-white/40 text-gray-500 font-medium text-lg flex items-center justify-between group transition-colors"
+                    className="px-4 py-2.5 rounded-lg hover:bg-white/10 text-gray-300 font-medium text-base flex items-center justify-between group transition-colors"
                     onClick={e => e.stopPropagation()}>
                     {item}
-                    <span className="opacity-0 -translate-x-2 group-hover:translate-x-0 group-hover:opacity-100 transition-all text-gray-500">
+                    <span className="opacity-0 -translate-x-2 group-hover:translate-x-0 group-hover:opacity-100 transition-all text-gray-400">
                       →
                     </span>
                   </motion.a>
