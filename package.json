@@ -10,13 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@gsap/react": "^2.1.2",
     "@reduxjs/toolkit": "^2.9.0",
     "@tailwindcss/vite": "^4.1.12",
-    "gsap": "^3.14.2",
     "lucide-react": "^0.562.0",
     "motion": "^12.23.26",
-    "motion-react": "^0.15.0-alpha.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-redux": "^9.2.0",
